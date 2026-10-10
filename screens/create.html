@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>phoU · 앨범 만들기</title>
+<style>
+  /* ---------- 디자인 토큰 (home.html과 같은 값) ---------- */
+  :root {
+    --bg: #FFFFFF;
+    --text: #111111;
+    --sub: #6B6B6B;
+    --surface: #F3F3F3;
+    --line: #DADADA;
+    --thumb: #E4E4E4;
+    --page: #E9E9E9;
+    --on-dark: #FFFFFF;
+    --error: #111111;
+
+    --s-1: 4px;
+    --s-2: 8px;
+    --s-3: 12px;
+    --s-4: 16px;
+    --s-5: 20px;
+    --s-6: 24px;
+    --s-8: 32px;
+
+    --r-card: 20px;
+    --r-field: 14px;
+    --r-pill: 999px;
+    --border: 1.5px solid var(--line);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    background: var(--page);
+    color: var(--text);
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  button, input, a { font: inherit; color: inherit; }
+  button { background: none; border: none; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+
+  /* ---------- 폰 프레임 ---------- */
+  .phone {
+    position: relative;
+    width: 390px;
+    height: 844px;
+    background: var(--bg);
+    border-radius: 48px;
+    box-shadow: 0 0 0 10px var(--text);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .status-bar {
+    height: 48px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 var(--s-8) var(--s-2);
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .screen {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--s-2) var(--s-5) var(--s-6);
+    scrollbar-width: none;
+  }
+  .screen::-webkit-scrollbar { display: none; }
+
+  .top { height: 44px; display: flex; align-items: center; }
+  .icon-btn {
+    width: 44px; height: 44px;
+    margin-left: calc(var(--s-3) * -1);
+    display: flex; align-items: center; justify-content: center;
+    border-radius: var(--r-pill);
+  }
+
+  .intro { margin: var(--s-4) 0 var(--s-8); }
+  .intro .eyebrow { color: var(--sub); margin-bottom: var(--s-2); }
+  .intro h1 { font-size: 28px; font-weight: 800; line-height: 1.35; letter-spacing: -0.5px; }
+
+  /* ---------- 입력 영역 ---------- */
+  .field { margin-bottom: var(--s-6); }
+  .field-label {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-2);
+    font-weight: 700;
+    margin-bottom: var(--s-2);
+  }
+  .field-label .opt { color: var(--sub); font-weight: 400; }
+  .input {
+    width: 100%;
+    height: 52px;
+    padding: 0 var(--s-4);
+    background: var(--surface);
+    border: var(--border);
+    border-radius: var(--r-field);
+    font-size: 16px;
+  }
+  .input::placeholder { color: var(--sub); }
+  .input:focus { outline: none; border-color: var(--text); }
+  .input[aria-invalid="true"] { border-color: var(--error); border-width: 2px; }
+
+  .dates { display: flex; align-items: center; gap: var(--s-2); }
+  .dates .input { flex: 1; min-width: 0; padding: 0 var(--s-3); }
+  .dates .tilde { color: var(--sub); }
+  .error-msg {
+    display: none;
+    align-items: center;
+    gap: var(--s-1);
+    margin-top: var(--s-2);
+    color: var(--error);
+    font-weight: 600;
+  }
+  .error-msg.show { display: flex; }
+
+  /* 자동 공유 토글 */
+  .toggle-card {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    background: var(--surface);
+    border: var(--border);
+    border-radius: var(--r-card);
+    padding: var(--s-4);
+  }
+  .toggle-card .text { flex: 1; }
+  .toggle-card .title { font-weight: 700; }
+  .toggle-card .desc { color: var(--sub); margin-top: var(--s-1); }
+  .switch {
+    position: relative;
+    flex-shrink: 0;
+    width: 52px; height: 32px;
+    border-radius: var(--r-pill);
+    background: var(--line);
+    transition: background 0.2s;
+  }
+  .switch::after {
+    content: '';
+    position: absolute;
+    top: 4px; left: 4px;
+    width: 24px; height: 24px;
+    border-radius: var(--r-pill);
+    background: var(--bg);
+    transition: transform 0.2s;
+  }
+  .switch[aria-checked="true"] { background: var(--text); }
+  .switch[aria-checked="true"]::after { transform: translateX(20px); }
+
+  /* ---------- 하단 고정 버튼 ---------- */
+  .bottom {
+    flex-shrink: 0;
+    padding: var(--s-3) var(--s-5) 0;
+    border-top: 1px solid var(--surface);
+  }
+  .btn-primary {
+    width: 100%;
+    height: 56px;
+    border-radius: var(--r-pill);
+    background: var(--text);
+    color: var(--on-dark);
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center; gap: var(--s-2);
+  }
+  .btn-primary:disabled { background: var(--thumb); color: var(--sub); cursor: default; }
+  .btn-primary.loading:disabled { background: var(--text); color: var(--on-dark); }
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid var(--sub);
+    border-top-color: var(--on-dark);
+    border-radius: var(--r-pill);
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .home-indicator {
+    width: 134px; height: 5px;
+    background: var(--text);
+    border-radius: var(--r-pill);
+    margin: var(--s-3) auto var(--s-2);
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 430px) {
+    body { display: block; background: var(--bg); }
+    .phone { width: 100%; height: 100dvh; border-radius: 0; box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="status-bar" aria-hidden="true">9:41</div>
+
+  <main class="screen">
+    <div class="top">
+      <a class="icon-btn" href="home.html" aria-label="닫고 홈으로">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </a>
+    </div>
+
+    <section class="intro">
+      <p class="eyebrow">새 공유 앨범</p>
+      <h1>어떤 순간을<br>함께 모을까요?</h1>
+    </section>
+
+    <form id="form" novalidate>
+      <div class="field">
+        <label class="field-label" for="name">앨범 이름</label>
+        <input class="input" id="name" type="text" maxlength="20" placeholder="예: 다같이 홍대 투어" autocomplete="off" required>
+      </div>
+
+      <div class="field">
+        <span class="field-label" id="periodLabel">이벤트 기간</span>
+        <div class="dates" role="group" aria-labelledby="periodLabel">
+          <input class="input" id="start" type="date" aria-label="시작일">
+          <span class="tilde" aria-hidden="true">~</span>
+          <input class="input" id="end" type="date" aria-label="종료일" aria-describedby="dateError">
+        </div>
+        <p class="error-msg" id="dateError" role="alert">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></svg>
+          종료일이 시작일보다 빨라요
+        </p>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="place">장소 <span class="opt">선택</span></label>
+        <input class="input" id="place" type="text" maxlength="20" placeholder="예: 성수동" autocomplete="off">
+      </div>
+
+      <div class="toggle-card">
+        <div class="text">
+          <p class="title" id="autoLabel">사진 자동으로 올리기</p>
+          <p class="desc" id="autoDesc">기간 안에 찍은 사진을 바로 올려요</p>
+        </div>
+        <button type="button" class="switch" id="autoShare" role="switch" aria-checked="true" aria-labelledby="autoLabel" aria-describedby="autoDesc"></button>
+      </div>
+    </form>
+  </main>
+
+  <div class="bottom">
+    <button class="btn-primary" id="submitBtn" form="form" type="submit" disabled>공유 앨범 만들기</button>
+  </div>
+  <div class="home-indicator" aria-hidden="true"></div>
+</div>
+
+<script>
+  // ---- 화면끼리 함께 쓰는 저장소 (home.html과 같은 키) ----
+  const Store = {
+    get() { try { return JSON.parse(localStorage.getItem('phou.albums')) || []; } catch (e) { return []; } },
+    set(list) { try { localStorage.setItem('phou.albums', JSON.stringify(list)); } catch (e) {} },
+  };
+
+  const form = document.getElementById('form');
+  const nameEl = document.getElementById('name');
+  const startEl = document.getElementById('start');
+  const endEl = document.getElementById('end');
+  const placeEl = document.getElementById('place');
+  const autoEl = document.getElementById('autoShare');
+  const errorEl = document.getElementById('dateError');
+  const submitBtn = document.getElementById('submitBtn');
+
+  // 기간 기본값: 오늘 ~ 오늘
+  const today = new Date();
+  const iso = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  startEl.value = iso;
+  endEl.value = iso;
+
+  let submitting = false;
+
+  function dateInvalid() {
+    return startEl.value && endEl.value && endEl.value < startEl.value;
+  }
+
+  // 상태: 기본(이름 없음 → 비활성) / 입력 오류(날짜) / 입력 완료(활성)
+  function update() {
+    const bad = dateInvalid();
+    errorEl.classList.toggle('show', bad);
+    endEl.setAttribute('aria-invalid', bad ? 'true' : 'false');
+    submitBtn.disabled = submitting || !nameEl.value.trim() || bad;
+  }
+
+  [nameEl, startEl, endEl].forEach(el => el.addEventListener('input', update));
+
+  autoEl.addEventListener('click', () => {
+    autoEl.setAttribute('aria-checked', autoEl.getAttribute('aria-checked') === 'true' ? 'false' : 'true');
+  });
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    update();
+    if (submitBtn.disabled) return;
+
+    // 연타 방지: 한 번 누르면 바로 잠금
+    submitting = true;
+    submitBtn.disabled = true;
+    submitBtn.classList.add('loading');
+    submitBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span>만드는 중…';
+
+    const album = {
+      id: Date.now(),
+      name: nameEl.value.trim(),
+      start: startEl.value,
+      end: endEl.value,
+      place: placeEl.value.trim(),
+      autoShare: autoEl.getAttribute('aria-checked') === 'true',
+      members: 1,
+      isNew: true,
+    };
+
+    setTimeout(() => {
+      Store.set([album, ...Store.get()]);
+      try { sessionStorage.setItem('phou.justCreated', String(album.id)); } catch (e) {}
+      location.href = 'invite.html?id=' + album.id;
+    }, 800);
+  });
+
+  update();
+</script>
+</body>
+</html>

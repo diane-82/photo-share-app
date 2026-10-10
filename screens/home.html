@@ -314,6 +314,11 @@
   ];
   const NEW_ALBUM = { id: 5, name: '성수 나들이', date: '2026.10.10', members: 1, isNew: true };
 
+  // ---- 화면끼리 함께 쓰는 저장소 (create.html에서 만든 앨범) ----
+  const Store = {
+    get() { try { return JSON.parse(localStorage.getItem('phou.albums')) || []; } catch (e) { return []; } },
+  };
+
   // 상태 확인용: home.html?state=empty (앨범 0개) / home.html?state=done (새 앨범 추가 직후)
   const state = new URLSearchParams(location.search).get('state');
 
@@ -342,14 +347,17 @@
       </div>`;
   }
 
+  // 더미 앨범은 date, 새로 만든 앨범은 start(2026-10-10)를 가지고 있어 한 형식으로 맞춤
+  const dateOf = a => a.date || a.start.replaceAll('-', '.');
+
   function renderAlbums(list) {
     countEl.textContent = `${list.length}개`;
     area.innerHTML = `<div class="grid">${list.map(a => `
-      <button class="album" onclick="openAlbum(${a.id})" aria-label="${a.name}, ${a.date}, ${a.members}명${a.isNew ? ', 새 앨범' : ''}">
+      <button class="album" onclick="openAlbum(${a.id})" aria-label="${a.name}, ${dateOf(a)}, ${a.members}명${a.isNew ? ', 새 앨범' : ''}">
         <div class="thumb">${photoIcon}</div>
         ${a.isNew ? '<span class="badge-new">NEW</span>' : ''}
         <span class="name">${a.name}</span>
-        <span class="meta">${a.date} · ${a.members}명</span>
+        <span class="meta">${dateOf(a)} · ${a.members}명</span>
       </button>`).join('')}
     </div>`;
   }
@@ -363,17 +371,20 @@
         showToast('새 앨범을 만들었어요');
         return;
       }
-      renderAlbums(ALBUMS);
+      renderAlbums([...Store.get(), ...ALBUMS]);
+      let justCreated = null;
+      try { justCreated = sessionStorage.getItem('phou.justCreated'); sessionStorage.removeItem('phou.justCreated'); } catch (e) {}
+      if (justCreated) showToast('새 앨범을 만들었어요');
     }, 700);
   }
 
   // ---- 다음 단계에서 연결할 화면들: 지금은 안내만 ----
   function openAlbum(id) {
-    const a = [NEW_ALBUM, ...ALBUMS].find(x => x.id === id);
+    const a = [NEW_ALBUM, ...Store.get(), ...ALBUMS].find(x => x.id === id);
     showToast(`'${a.name}' 앨범 보기는 다음 단계에서 연결돼요`);
   }
   function goCreate() {
-    showToast('앨범 만들기는 다음 단계에서 연결돼요');
+    location.href = 'create.html';
   }
 
   // 같은 버튼을 빠르게 여러 번 눌러도 토스트는 하나만, 시간만 다시 셈
