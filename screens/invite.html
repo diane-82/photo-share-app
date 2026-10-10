@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>phoU · 친구 초대</title>
+<style>
+  /* ---------- 디자인 토큰 (home.html과 같은 값) ---------- */
+  :root {
+    --bg: #FFFFFF;
+    --text: #111111;
+    --sub: #6B6B6B;
+    --surface: #F3F3F3;
+    --line: #DADADA;
+    --thumb: #E4E4E4;
+    --page: #E9E9E9;
+    --on-dark: #FFFFFF;
+
+    /* 예외: 외부 서비스 로고는 브랜드 색 그대로 (AGENTS.md) */
+    --kakao: #FEE500;
+    --kakao-ink: #191919;
+    --insta: radial-gradient(circle at 30% 107%, #FDF497 0%, #FDF497 5%, #FD5949 45%, #D6249F 60%, #285AEB 90%);
+
+    --s-1: 4px;
+    --s-2: 8px;
+    --s-3: 12px;
+    --s-4: 16px;
+    --s-5: 20px;
+    --s-6: 24px;
+    --s-8: 32px;
+
+    --r-card: 20px;
+    --r-field: 14px;
+    --r-pill: 999px;
+    --border: 1.5px solid var(--line);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    background: var(--page);
+    color: var(--text);
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  button, a { font: inherit; color: inherit; }
+  button { background: none; border: none; cursor: pointer; }
+  a { text-decoration: none; }
+  :focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+
+  /* ---------- 폰 프레임 ---------- */
+  .phone {
+    position: relative;
+    width: 390px;
+    height: 844px;
+    background: var(--bg);
+    border-radius: 48px;
+    box-shadow: 0 0 0 10px var(--text);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .status-bar {
+    height: 48px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 var(--s-8) var(--s-2);
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .screen {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--s-6) var(--s-5) var(--s-6);
+    scrollbar-width: none;
+  }
+  .screen::-webkit-scrollbar { display: none; }
+
+  .intro { margin-bottom: var(--s-6); }
+  .intro .eyebrow { color: var(--sub); margin-bottom: var(--s-2); }
+  .intro h1 { font-size: 28px; font-weight: 800; line-height: 1.35; letter-spacing: -0.5px; }
+
+  /* ---------- QR ---------- */
+  .qr-card {
+    background: var(--surface);
+    border: var(--border);
+    border-radius: var(--r-card);
+    padding: var(--s-6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--s-3);
+  }
+  .qr-box {
+    width: 200px; height: 200px;
+    background: var(--bg);
+    border-radius: var(--r-field);
+    padding: var(--s-3);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .qr-box svg { width: 100%; height: 100%; display: block; }
+  .qr-card .caption { color: var(--sub); text-align: center; }
+
+  /* 링크 복사 */
+  .link-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    background: var(--bg);
+    border: var(--border);
+    border-radius: var(--r-pill);
+    padding: var(--s-1) var(--s-1) var(--s-1) var(--s-4);
+  }
+  .link-row .url {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .btn-copy {
+    flex-shrink: 0;
+    height: 40px;
+    padding: 0 var(--s-4);
+    border-radius: var(--r-pill);
+    background: var(--text);
+    color: var(--on-dark);
+    font-weight: 600;
+  }
+
+  /* ---------- 섹션 ---------- */
+  .section { margin-top: var(--s-8); }
+  .section h2 { font-size: 18px; font-weight: 700; margin-bottom: var(--s-4); }
+
+  .share-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
+  .share-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--s-2);
+    white-space: nowrap;
+  }
+  .share-btn .logo {
+    width: 56px; height: 56px;
+    border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .logo.kakao { background: var(--kakao); color: var(--kakao-ink); }
+  .logo.insta { background: var(--insta); color: var(--on-dark); }
+  .logo.plain { background: var(--surface); border: var(--border); }
+
+  /* 유효기간 */
+  .segment {
+    display: flex;
+    background: var(--surface);
+    border: var(--border);
+    border-radius: var(--r-pill);
+    padding: var(--s-1);
+  }
+  .segment label { flex: 1; position: relative; }
+  .segment input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+  .segment span {
+    display: flex; align-items: center; justify-content: center;
+    height: 44px;
+    border-radius: var(--r-pill);
+    color: var(--sub);
+    font-weight: 600;
+  }
+  .segment input:checked + span { background: var(--bg); color: var(--text); box-shadow: 0 0 0 1.5px var(--line); }
+  .segment input:focus-visible + span { outline: 2px solid var(--text); outline-offset: 2px; }
+  .expire-note {
+    display: flex; align-items: center; gap: var(--s-2);
+    color: var(--sub);
+    margin-top: var(--s-3);
+  }
+
+  /* 로딩 */
+  .qr-loading {
+    width: 200px; height: 200px;
+    border-radius: var(--r-field);
+    background: var(--bg);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s-3);
+    color: var(--sub);
+  }
+  .spinner {
+    width: 28px; height: 28px;
+    border: 3px solid var(--line);
+    border-top-color: var(--text);
+    border-radius: var(--r-pill);
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* 오류 */
+  .error-view {
+    height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; gap: var(--s-2);
+    padding: 0 var(--s-6);
+  }
+  .error-view .icon {
+    width: 64px; height: 64px;
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: var(--s-2);
+  }
+  .error-view .title { font-size: 20px; font-weight: 700; }
+  .error-view .desc { color: var(--sub); }
+
+  /* ---------- 하단 고정 버튼 ---------- */
+  .bottom {
+    flex-shrink: 0;
+    padding: var(--s-3) var(--s-5) 0;
+    border-top: 1px solid var(--surface);
+  }
+  .btn-primary {
+    width: 100%;
+    height: 56px;
+    border-radius: var(--r-pill);
+    background: var(--text);
+    color: var(--on-dark);
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .error-view .btn-primary { width: auto; padding: 0 var(--s-8); margin-top: var(--s-4); }
+
+  .home-indicator {
+    width: 134px; height: 5px;
+    background: var(--text);
+    border-radius: var(--r-pill);
+    margin: var(--s-3) auto var(--s-2);
+    flex-shrink: 0;
+  }
+
+  .toast {
+    position: absolute;
+    left: 50%;
+    bottom: 110px;
+    transform: translate(-50%, 8px);
+    background: var(--text);
+    color: var(--on-dark);
+    padding: var(--s-3) var(--s-5);
+    border-radius: var(--r-pill);
+    width: max-content;
+    max-width: calc(100% - var(--s-8) * 2);
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  [hidden] { display: none !important; }
+
+  @media (max-width: 430px) {
+    body { display: block; background: var(--bg); }
+    .phone { width: 100%; height: 100dvh; border-radius: 0; box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="status-bar" aria-hidden="true">9:41</div>
+
+  <main class="screen" id="screen">
+    <!-- 기본 화면 -->
+    <div id="mainView">
+      <section class="intro">
+        <p class="eyebrow" id="albumName"></p>
+        <h1>앨범이 만들어졌어요<br>친구를 초대해볼까요?</h1>
+      </section>
+
+      <div class="qr-card">
+        <div id="qrArea"></div>
+        <p class="caption">카메라로 찍으면 앱 없이도 바로 들어와요</p>
+        <div class="link-row">
+          <span class="url" id="url"></span>
+          <button class="btn-copy" id="copyBtn">복사</button>
+        </div>
+      </div>
+
+      <section class="section" aria-labelledby="shareTitle">
+        <h2 id="shareTitle">다른 방법으로 보내기</h2>
+        <div class="share-list">
+          <button class="share-btn" onclick="share('카카오톡')">
+            <span class="logo kakao" aria-hidden="true">
+              <svg width="30" height="28" viewBox="0 0 30 28" fill="currentColor"><path d="M15 2C7.3 2 1 6.9 1 13c0 3.9 2.6 7.3 6.5 9.3l-1.4 5c-.1.4.3.7.7.5l6-4c.7.1 1.4.1 2.2.1 7.7 0 14-4.9 14-11S22.7 2 15 2Z"/></svg>
+            </span>
+            카카오톡
+          </button>
+          <button class="share-btn" onclick="share('인스타그램')">
+            <span class="logo insta" aria-hidden="true">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.3" cy="6.7" r="1" fill="currentColor" stroke="none"/></svg>
+            </span>
+            인스타그램
+          </button>
+          <button class="share-btn" onclick="share('메시지')">
+            <span class="logo plain" aria-hidden="true">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12Z"/></svg>
+            </span>
+            메시지
+          </button>
+          <button class="share-btn" onclick="share('더보기')">
+            <span class="logo plain" aria-hidden="true">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+            </span>
+            더보기
+          </button>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="expireTitle">
+        <h2 id="expireTitle">링크 유효기간</h2>
+        <div class="segment" role="radiogroup" aria-labelledby="expireTitle">
+          <label><input type="radio" name="expire" value="1"><span>1일</span></label>
+          <label><input type="radio" name="expire" value="7" checked><span>7일</span></label>
+          <label><input type="radio" name="expire" value="30"><span>30일</span></label>
+        </div>
+        <p class="expire-note" aria-live="polite">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          <span id="expireText"></span>
+        </p>
+      </section>
+    </div>
+
+    <!-- 오류 화면 -->
+    <div class="error-view" id="errorView" hidden>
+      <div class="icon" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M8.5 8.5l5 5M13.5 8.5l-5 5"/></svg>
+      </div>
+      <p class="title">앨범을 찾을 수 없어요</p>
+      <p class="desc">링크가 잘못됐거나 앨범이 사라졌어요</p>
+      <a class="btn-primary" href="home.html">홈으로</a>
+    </div>
+  </main>
+
+  <div class="bottom" id="bottomBar">
+    <a class="btn-primary" href="home.html">완료</a>
+  </div>
+  <div class="home-indicator" aria-hidden="true"></div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</div>
+
+<script>
+  // ---- 화면끼리 함께 쓰는 저장소 (create.html과 같은 키) ----
+  const Store = {
+    get() { try { return JSON.parse(localStorage.getItem('phou.albums')) || []; } catch (e) { return []; } },
+    set(list) { try { localStorage.setItem('phou.albums', JSON.stringify(list)); } catch (e) {} },
+  };
+
+  const id = Number(new URLSearchParams(location.search).get('id'));
+  const album = Store.get().find(a => a.id === id);
+
+  // ---- 오류 상태: 앨범 정보를 못 찾음 ----
+  if (!album) {
+    document.getElementById('mainView').hidden = true;
+    document.getElementById('bottomBar').hidden = true;
+    document.getElementById('errorView').hidden = false;
+  } else {
+    init();
+  }
+
+  function init() {
+    document.getElementById('albumName').textContent = `'${album.name}' 앨범`;
+    const url = `phou.app/a/${album.id.toString(36)}`;
+    document.getElementById('url').textContent = url;
+
+    // 로딩 → QR 표시
+    const qrArea = document.getElementById('qrArea');
+    qrArea.innerHTML = `<div class="qr-loading" role="status"><div class="spinner" aria-hidden="true"></div>QR 만드는 중…</div>`;
+    setTimeout(() => {
+      qrArea.innerHTML = `<div class="qr-box" role="img" aria-label="앨범 초대 QR 코드">${fakeQR(album.id)}</div>`;
+    }, 700);
+
+    document.getElementById('copyBtn').addEventListener('click', () => copy('https://' + url));
+
+    document.querySelectorAll('input[name="expire"]').forEach(r => r.addEventListener('change', () => setExpire(Number(r.value))));
+    setExpire(album.expireDays || 7);
+  }
+
+  // ---- 유효기간: 오늘 + N일 ----
+  function setExpire(days) {
+    document.querySelector(`input[name="expire"][value="${days}"]`).checked = true;
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    const text = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}까지 열 수 있어요`;
+    document.getElementById('expireText').textContent = text;
+    Store.set(Store.get().map(a => a.id === album.id ? { ...a, expireDays: days } : a));
+  }
+
+  // ---- 가짜 QR: 모양만 (스캔 안 됨). 앨범 id로 매번 같은 무늬 ----
+  function fakeQR(seed) {
+    const N = 25;
+    let s = seed % 2147483647;
+    const rand = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    const finder = (r, c) => {
+      const zones = [[0, 0], [0, N - 7], [N - 7, 0]];
+      for (const [zr, zc] of zones) {
+        if (r >= zr && r < zr + 7 && c >= zc && c < zc + 7) {
+          const y = r - zr, x = c - zc;
+          return { inFinder: true, on: y === 0 || y === 6 || x === 0 || x === 6 || (y >= 2 && y <= 4 && x >= 2 && x <= 4) };
+        }
+        if (r >= zr - 1 && r <= zr + 7 && c >= zc - 1 && c <= zc + 7) return { inFinder: true, on: false };
+      }
+      return { inFinder: false };
+    };
+    let rects = '';
+    for (let r = 0; r < N; r++) {
+      for (let c = 0; c < N; c++) {
+        const f = finder(r, c);
+        const on = f.inFinder ? f.on : rand() > 0.52;
+        if (on) rects += `<rect x="${c}" y="${r}" width="1" height="1"/>`;
+      }
+    }
+    return `<svg viewBox="0 0 ${N} ${N}" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true">${rects}</svg>`;
+  }
+
+  // ---- 링크 복사 ----
+  async function copy(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (e) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+    }
+    showToast('링크를 복사했어요');
+  }
+
+  function share(name) {
+    showToast(`${name} 공유는 실제 앱에서 열려요`);
+  }
+
+  // 같은 버튼을 빠르게 여러 번 눌러도 토스트는 하나만, 시간만 다시 셈
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+  }
+</script>
+</body>
+</html>
