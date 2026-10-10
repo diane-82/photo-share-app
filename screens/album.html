@@ -556,7 +556,7 @@
               <span class="initial" aria-hidden="true">${p.by}</span>
             </button>`).join('')}</div>`}
     `;
-    document.getElementById('aiCard').addEventListener('click', () => showToast('AI 추천 화면은 다음 단계에서 연결돼요'));
+    document.getElementById('aiCard').addEventListener('click', () => { location.href = 'recommend.html?id=' + album.id; });
     content.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => { filter = c.dataset.filter; renderMain(); content.querySelector(`.chip[data-filter="${filter}"]`).focus(); }));
     content.querySelectorAll('.photo').forEach(p => p.addEventListener('click', () => openViewer(Number(p.dataset.index), p)));
     downloadBtn.disabled = list.length === 0;
