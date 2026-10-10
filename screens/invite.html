@@ -134,6 +134,14 @@
     font-weight: 600;
   }
 
+  .preview-link {
+    display: inline-flex; align-items: center; gap: var(--s-1);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    padding: var(--s-1) 0;
+  }
+
   /* ---------- 섹션 ---------- */
   .section { margin-top: var(--s-8); }
   .section h2 { font-size: 18px; font-weight: 700; margin-bottom: var(--s-4); }
@@ -285,6 +293,9 @@
           <span class="url" id="url"></span>
           <button class="btn-copy" id="copyBtn">복사</button>
         </div>
+        <a class="preview-link" id="previewLink" href="join.html">친구 화면 미리보기
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+        </a>
       </div>
 
       <section class="section" aria-labelledby="shareTitle">
@@ -373,6 +384,7 @@
     document.getElementById('albumName').textContent = `'${album.name}' 앨범`;
     const url = `phou.app/a/${album.id.toString(36)}`;
     document.getElementById('url').textContent = url;
+    document.getElementById('previewLink').href = 'join.html?id=' + album.id;
 
     // 로딩 → QR 표시
     const qrArea = document.getElementById('qrArea');

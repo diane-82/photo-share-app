@@ -570,7 +570,13 @@
     photos = makePhotos(album);
     document.getElementById('albumMeta').textContent = `${dateOf(album)} · ${album.members}명 · 사진 ${photos.length}장`;
     renderLoading();
-    setTimeout(() => photos.length === 0 ? renderEmpty() : renderMain(), 700);
+    setTimeout(() => {
+      photos.length === 0 ? renderEmpty() : renderMain();
+      // 초대 확인(join.html)에서 참여하기로 들어온 경우
+      let joined = null;
+      try { joined = sessionStorage.getItem('phou.joined'); sessionStorage.removeItem('phou.joined'); } catch (e) {}
+      if (joined === String(album.id)) showToast('앨범에 참여했어요');
+    }, 700);
   }
 
   // ---------- 저장 시트 ----------
