@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>phoU · 워킹 프로토타입</title>
+<style>
+  /* ---------- 디자인 토큰 (screens/와 같은 값) ---------- */
+  :root {
+    --bg: #FFFFFF;
+    --text: #111111;
+    --sub: #6B6B6B;
+    --surface: #F3F3F3;
+    --line: #DADADA;
+    --on-dark: #FFFFFF;
+
+    --s-1: 4px;
+    --s-2: 8px;
+    --s-3: 12px;
+    --s-4: 16px;
+    --s-5: 20px;
+    --s-6: 24px;
+    --s-8: 32px;
+    --s-12: 48px;
+
+    --r-card: 20px;
+    --r-pill: 999px;
+    --border: 1.5px solid var(--line);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  a, button { font: inherit; color: inherit; }
+  a { text-decoration: none; }
+  button { background: none; border: none; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+
+  .wrap { max-width: 720px; margin: 0 auto; padding: var(--s-12) var(--s-5) var(--s-12); }
+
+  .logo { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  .intro { margin: var(--s-8) 0 var(--s-8); }
+  .intro .eyebrow { color: var(--sub); margin-bottom: var(--s-2); }
+  .intro h1 { font-size: 32px; font-weight: 800; line-height: 1.3; letter-spacing: -0.5px; word-break: keep-all; }
+  .intro p.lead { color: var(--sub); margin-top: var(--s-3); word-break: keep-all; }
+
+  h2 { font-size: 20px; font-weight: 800; margin-bottom: var(--s-4); }
+  section + section { margin-top: var(--s-12); }
+
+  /* 플로우 카드 */
+  .flows { display: grid; gap: var(--s-3); }
+  .flow {
+    display: flex; align-items: center; gap: var(--s-4);
+    background: var(--surface);
+    border: var(--border);
+    border-radius: var(--r-card);
+    padding: var(--s-5);
+  }
+  .flow .num {
+    width: 44px; height: 44px; flex-shrink: 0;
+    border-radius: var(--r-pill);
+    background: var(--text);
+    color: var(--on-dark);
+    font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .flow .text { flex: 1; min-width: 0; }
+  .flow .title { display: block; font-weight: 800; font-size: 18px; }
+  .flow .steps { display: block; color: var(--sub); margin-top: var(--s-1); word-break: keep-all; }
+
+  /* 화면 목록 */
+  .screens { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s-2); }
+  .screen-link {
+    display: flex; flex-direction: column;
+    border: var(--border);
+    border-radius: 14px;
+    padding: var(--s-3) var(--s-4);
+  }
+  .screen-link .name { font-weight: 700; }
+  .screen-link .from { color: var(--sub); }
+
+  .notes { display: grid; gap: var(--s-2); color: var(--sub); }
+  .notes li { list-style: none; display: flex; gap: var(--s-2); }
+  .notes li::before { content: '·'; font-weight: 800; color: var(--text); }
+
+  .reset {
+    margin-top: var(--s-5);
+    height: 48px;
+    padding: 0 var(--s-5);
+    border: var(--border);
+    border-radius: var(--r-pill);
+    font-weight: 700;
+  }
+  .reset-msg { color: var(--sub); margin-top: var(--s-2); min-height: 24px; }
+
+  footer { margin-top: var(--s-12); padding-top: var(--s-6); border-top: 1px solid var(--line); color: var(--sub); }
+  footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--text); }
+
+  @media (max-width: 480px) {
+    .screens { grid-template-columns: 1fr; }
+    .intro h1 { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <p class="logo">phoU</p>
+
+  <section class="intro">
+    <p class="eyebrow">팀 광명 · 사용자경험디자인2 · 5주차 워킹 프로토타입</p>
+    <h1>모임 뒤 쌓인 사진,<br>AI가 고르고 친구와 나눠요</h1>
+    <p class="lead">처음부터 끝까지 직접 눌러 볼 수 있는 프로토타입이에요. 아래에서 흐름을 하나 골라 시작하세요.</p>
+  </section>
+
+  <section aria-labelledby="flowsTitle">
+    <h2 id="flowsTitle">흐름 골라서 해 보기</h2>
+    <div class="flows">
+      <a class="flow" href="screens/home.html">
+        <span class="num" aria-hidden="true">1</span>
+        <span class="text">
+          <span class="title">보내는 사람 — 앨범 만들고 친구 초대</span>
+          <span class="steps">홈 → ＋ 새 앨범 → 공유 옵션 → QR·링크 보내기 → 홈</span>
+        </span>
+      </a>
+      <a class="flow" href="screens/join.html?id=1">
+        <span class="num" aria-hidden="true">2</span>
+        <span class="text">
+          <span class="title">받는 친구 — 초대 받고 참여하기</span>
+          <span class="steps">초대 확인 → 참여하기 → 공유된 앨범 → 사진 크게 보기</span>
+        </span>
+      </a>
+      <a class="flow" href="screens/album.html?id=1">
+        <span class="num" aria-hidden="true">3</span>
+        <span class="text">
+          <span class="title">AI 추천으로 고르고 저장하기</span>
+          <span class="steps">공유된 앨범 → AI 추천 확인 → 내 폰에 저장(비슷한 사진은 베스트 1장만)</span>
+        </span>
+      </a>
+    </div>
+  </section>
+
+  <section aria-labelledby="screensTitle">
+    <h2 id="screensTitle">화면 바로 가기</h2>
+    <div class="screens">
+      <a class="screen-link" href="screens/home.html"><span class="name">홈</span><span class="from">Lo-Fi 05</span></a>
+      <a class="screen-link" href="screens/create.html"><span class="name">앨범 만들기</span><span class="from">Lo-Fi 01</span></a>
+      <a class="screen-link" href="screens/options.html"><span class="name">공유 옵션 설정</span><span class="from">Lo-Fi 02 · 앨범 만들기에서 들어와야 해요</span></a>
+      <a class="screen-link" href="screens/invite.html"><span class="name">QR·링크 보내기</span><span class="from">Lo-Fi 03 · 앨범 만들기에서 들어와야 해요</span></a>
+      <a class="screen-link" href="screens/join.html?id=1"><span class="name">초대 확인 (받는 친구)</span><span class="from">Lo-Fi 03</span></a>
+      <a class="screen-link" href="screens/join.html?id=1&amp;expired=1"><span class="name">초대 확인 — 만료된 링크</span><span class="from">PRD 예외 처리</span></a>
+      <a class="screen-link" href="screens/album.html?id=1"><span class="name">공유된 앨범 보기</span><span class="from">Lo-Fi 06</span></a>
+      <a class="screen-link" href="screens/recommend.html?id=1"><span class="name">AI 추천 확인</span><span class="from">Lo-Fi 04</span></a>
+      <a class="screen-link" href="screens/home.html?state=empty"><span class="name">홈 — 앨범 없는 새 유저</span><span class="from">빈 상태</span></a>
+    </div>
+  </section>
+
+  <section aria-labelledby="notesTitle">
+    <h2 id="notesTitle">알아 두세요</h2>
+    <ul class="notes">
+      <li>사진은 모두 회색 박스, 사람은 이니셜(나, A~E)만 쓰는 더미 데이터예요.</li>
+      <li>"AI 추천"은 실제 AI가 아니라, 비슷한 사진 묶음에서 1장을 고르는 규칙으로 흉내 낸 거예요.</li>
+      <li>QR 코드는 모양만 있어서 스캔되지 않아요.</li>
+      <li>만든 앨범은 이 브라우저에만 저장돼요. 다른 기기나 브라우저에서는 보이지 않아요.</li>
+    </ul>
+    <button class="reset" id="resetBtn">테스트 데이터 지우기</button>
+    <p class="reset-msg" id="resetMsg" role="status" aria-live="polite"></p>
+  </section>
+
+  <footer>
+    팀 광명 — 김민주, 김지현, 박성은, 이다영 ·
+    <a href="https://github.com/diane-82/photo-share-app">GitHub 레포</a>
+  </footer>
+</main>
+
+<script>
+  // 테스트 참가자가 바뀔 때 처음 상태로 되돌리기 (만든 앨범·임시값 삭제)
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    try {
+      Object.keys(localStorage).filter(k => k.startsWith('phou.')).forEach(k => localStorage.removeItem(k));
+      Object.keys(sessionStorage).filter(k => k.startsWith('phou.')).forEach(k => sessionStorage.removeItem(k));
+      document.getElementById('resetMsg').textContent = '지웠어요. 이제 처음 상태로 시작해요.';
+    } catch (e) {
+      document.getElementById('resetMsg').textContent = '이 브라우저에서는 지울 수 없어요.';
+    }
+  });
+</script>
+</body>
+</html>
