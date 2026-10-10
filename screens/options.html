@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>phoU · 공유 옵션</title>
+<style>
+  /* ---------- 디자인 토큰 (home.html과 같은 값) ---------- */
+  :root {
+    --bg: #FFFFFF;
+    --text: #111111;
+    --sub: #6B6B6B;
+    --surface: #F3F3F3;
+    --line: #DADADA;
+    --thumb: #E4E4E4;
+    --page: #E9E9E9;
+    --on-dark: #FFFFFF;
+
+    --s-1: 4px;
+    --s-2: 8px;
+    --s-3: 12px;
+    --s-4: 16px;
+    --s-5: 20px;
+    --s-6: 24px;
+    --s-8: 32px;
+
+    --r-card: 20px;
+    --r-pill: 999px;
+    --border: 1.5px solid var(--line);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    background: var(--page);
+    color: var(--text);
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  button, a { font: inherit; color: inherit; }
+  button { background: none; border: none; cursor: pointer; }
+  a { text-decoration: none; }
+  :focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+
+  /* ---------- 폰 프레임 ---------- */
+  .phone {
+    position: relative;
+    width: 390px;
+    height: 844px;
+    background: var(--bg);
+    border-radius: 48px;
+    box-shadow: 0 0 0 10px var(--text);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .status-bar {
+    height: 48px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 var(--s-8) var(--s-2);
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .screen {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--s-2) var(--s-5) var(--s-6);
+    scrollbar-width: none;
+  }
+  .screen::-webkit-scrollbar { display: none; }
+
+  .top { height: 44px; display: flex; align-items: center; }
+  .icon-btn {
+    width: 44px; height: 44px;
+    margin-left: calc(var(--s-3) * -1);
+    display: flex; align-items: center; justify-content: center;
+    border-radius: var(--r-pill);
+  }
+
+  .intro { margin: var(--s-4) 0 var(--s-6); }
+  .intro .eyebrow { color: var(--sub); margin-bottom: var(--s-2); }
+  .intro h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+  .intro .lead { color: var(--sub); margin-top: var(--s-2); }
+
+  /* ---------- 옵션 목록 ---------- */
+  .options { display: flex; flex-direction: column; gap: var(--s-2); }
+  .option {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    background: var(--surface);
+    border: var(--border);
+    border-radius: var(--r-card);
+    padding: var(--s-3) var(--s-4);
+  }
+  .option .ico {
+    width: 40px; height: 40px; flex-shrink: 0;
+    border-radius: var(--r-pill);
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .option .text { flex: 1; min-width: 0; }
+  .option .title { font-weight: 700; }
+  .option .desc { color: var(--sub); margin-top: 2px; }
+
+  .switch {
+    position: relative; flex-shrink: 0;
+    width: 52px; height: 32px;
+    border-radius: var(--r-pill);
+    background: var(--line);
+    transition: background 0.2s;
+  }
+  .switch::after {
+    content: ''; position: absolute; top: 4px; left: 4px;
+    width: 24px; height: 24px; border-radius: var(--r-pill);
+    background: var(--bg);
+    transition: transform 0.2s;
+  }
+  .switch[aria-checked="true"] { background: var(--text); }
+  .switch[aria-checked="true"]::after { transform: translateX(20px); }
+
+  .note {
+    display: flex; align-items: flex-start; gap: var(--s-2);
+    color: var(--sub);
+    margin-top: var(--s-4);
+  }
+  .note svg { flex-shrink: 0; margin-top: 2px; }
+
+  /* 오류 */
+  .error-view {
+    height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; gap: var(--s-2);
+    padding: 0 var(--s-6);
+  }
+  .error-view .title { font-size: 20px; font-weight: 700; }
+  .error-view .desc { color: var(--sub); }
+  .error-view .btn-primary { width: auto; padding: 0 var(--s-8); margin-top: var(--s-4); }
+
+  /* ---------- 하단 고정 버튼 ---------- */
+  .bottom {
+    flex-shrink: 0;
+    padding: var(--s-3) var(--s-5) 0;
+    border-top: 1px solid var(--surface);
+  }
+  .btn-primary {
+    width: 100%;
+    height: 56px;
+    border-radius: var(--r-pill);
+    background: var(--text);
+    color: var(--on-dark);
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center; gap: var(--s-2);
+  }
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid var(--sub);
+    border-top-color: var(--on-dark);
+    border-radius: var(--r-pill);
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .home-indicator {
+    width: 134px; height: 5px;
+    background: var(--text);
+    border-radius: var(--r-pill);
+    margin: var(--s-3) auto var(--s-2);
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 430px) {
+    body { display: block; background: var(--bg); }
+    .phone { width: 100%; height: 100dvh; border-radius: 0; box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="status-bar" aria-hidden="true">9:41</div>
+
+  <main class="screen">
+    <div id="mainView">
+      <div class="top">
+        <a class="icon-btn" href="create.html" aria-label="앨범 만들기로 돌아가기">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+        </a>
+      </div>
+
+      <section class="intro">
+        <p class="eyebrow" id="albumName"></p>
+        <h1>어떤 사진을 공유할까요?</h1>
+        <p class="lead">이런 사진은 빼고 올려요</p>
+      </section>
+
+      <div class="options" id="options"></div>
+
+      <p class="note">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></svg>
+        <span id="noteText" aria-live="polite"></span>
+      </p>
+    </div>
+
+    <!-- 오류: 만들던 앨범 정보 없음 -->
+    <div class="error-view" id="errorView" hidden>
+      <p class="title">만들던 앨범 정보가 없어요</p>
+      <p class="desc">앨범 이름과 기간부터 다시 정해 주세요</p>
+      <a class="btn-primary" href="create.html">새 앨범 만들기</a>
+    </div>
+  </main>
+
+  <div class="bottom" id="bottomBar">
+    <button class="btn-primary" id="submitBtn">공유 앨범 만들기</button>
+  </div>
+  <div class="home-indicator" aria-hidden="true"></div>
+</div>
+
+<script>
+  // ---- 화면끼리 함께 쓰는 저장소 ----
+  const Store = {
+    get() { try { return JSON.parse(localStorage.getItem('phou.albums')) || []; } catch (e) { return []; } },
+    set(list) { try { localStorage.setItem('phou.albums', JSON.stringify(list)); } catch (e) {} },
+  };
+  // create.html에서 넘겨준 만드는 중인 앨범
+  const Draft = {
+    get() { try { return JSON.parse(sessionStorage.getItem('phou.draft')); } catch (e) { return null; } },
+  };
+
+  // ---- 옵션 목록 (기본값: 셀카·흔들린 사진·스크린샷 제외 켜짐) ----
+  const OPTIONS = [
+    { key: 'noSelfie',     title: '내 셀카 제외',          desc: '나만 나온 사진은 올리지 않아요',  on: true,
+      icon: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>' },
+    { key: 'noShaky',      title: '흔들린 사진 제외',       desc: '초점이 흔들린 컷은 빼요',        on: true,
+      icon: '<rect x="5" y="5" width="14" height="14" rx="2"/><path d="M2 9v6M22 9v6"/>' },
+    { key: 'bestOnly',     title: '비슷한 사진은 대표 1장만', desc: '연속으로 찍은 컷 중 베스트만',    on: false,
+      icon: '<rect x="7" y="7" width="13" height="13" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/>' },
+    { key: 'noScreenshot', title: '스크린샷 제외',          desc: '캡처한 화면은 올리지 않아요',     on: true,
+      icon: '<rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M10.5 18.5h3"/>' },
+    { key: 'noVideo',      title: '영상 제외',             desc: '사진만 올려요',                on: false,
+      icon: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9.5 4.5 2.5-4.5 2.5z"/>' },
+  ];
+
+  const draft = Draft.get();
+  const submitBtn = document.getElementById('submitBtn');
+  let submitting = false;
+
+  if (!draft) {
+    // 오류 상태: 주소로 바로 들어왔거나 앨범 만들기를 거치지 않음
+    document.getElementById('mainView').hidden = true;
+    document.getElementById('bottomBar').hidden = true;
+    document.getElementById('errorView').hidden = false;
+  } else {
+    document.getElementById('albumName').textContent = `'${draft.name}'`;
+    renderOptions();
+  }
+
+  function renderOptions() {
+    document.getElementById('options').innerHTML = OPTIONS.map((o, i) => `
+      <div class="option">
+        <span class="ico" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${o.icon}</svg>
+        </span>
+        <div class="text">
+          <p class="title" id="opt${i}">${o.title}</p>
+          <p class="desc" id="optd${i}">${o.desc}</p>
+        </div>
+        <button type="button" class="switch" role="switch" data-i="${i}" aria-checked="${o.on}" aria-labelledby="opt${i}" aria-describedby="optd${i}"></button>
+      </div>`).join('');
+    document.querySelectorAll('.switch').forEach(sw => sw.addEventListener('click', () => {
+      const o = OPTIONS[Number(sw.dataset.i)];
+      o.on = !o.on;
+      sw.setAttribute('aria-checked', String(o.on));
+      updateNote();
+    }));
+    updateNote();
+  }
+
+  // 상태: 하나라도 켜짐 / 모두 끔
+  function updateNote() {
+    const count = OPTIONS.filter(o => o.on).length;
+    document.getElementById('noteText').innerHTML = (count === 0
+      ? '기간 안의 사진이 모두 올라가요'
+      : `${count}가지 사진은 빼고 올려요`) + '<br>이 설정은 나중에 바꿀 수 있어요';
+  }
+
+  submitBtn.addEventListener('click', () => {
+    if (submitting) return;  // 연타 방지
+    submitting = true;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span>만드는 중…';
+
+    const options = Object.fromEntries(OPTIONS.map(o => [o.key, o.on]));
+    const album = { ...draft, options };
+
+    setTimeout(() => {
+      Store.set([album, ...Store.get().filter(a => a.id !== album.id)]);
+      try {
+        sessionStorage.removeItem('phou.draft');
+        sessionStorage.setItem('phou.justCreated', String(album.id));
+      } catch (e) {}
+      location.href = 'invite.html?id=' + album.id;
+    }, 800);
+  });
+</script>
+</body>
+</html>

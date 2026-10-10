@@ -249,7 +249,7 @@
   </main>
 
   <div class="bottom">
-    <button class="btn-primary" id="submitBtn" form="form" type="submit" disabled>공유 앨범 만들기</button>
+    <button class="btn-primary" id="submitBtn" form="form" type="submit" disabled>다음</button>
   </div>
   <div class="home-indicator" aria-hidden="true"></div>
 </div>
@@ -259,6 +259,11 @@
   const Store = {
     get() { try { return JSON.parse(localStorage.getItem('phou.albums')) || []; } catch (e) { return []; } },
     set(list) { try { localStorage.setItem('phou.albums', JSON.stringify(list)); } catch (e) {} },
+  };
+  // 만드는 중인 앨범 (공유 옵션 화면으로 넘길 때 잠깐 보관, options.html과 같은 키)
+  const Draft = {
+    get() { try { return JSON.parse(sessionStorage.getItem('phou.draft')); } catch (e) { return null; } },
+    set(d) { try { sessionStorage.setItem('phou.draft', JSON.stringify(d)); } catch (e) {} },
   };
 
   const form = document.getElementById('form');
@@ -276,24 +281,38 @@
   startEl.value = iso;
   endEl.value = iso;
 
+  // 공유 옵션 화면에서 ←로 돌아오면 입력했던 값 그대로 보여주기
+  const draft = Draft.get();
+  if (draft) {
+    nameEl.value = draft.name;
+    startEl.value = draft.start;
+    endEl.value = draft.end;
+    placeEl.value = draft.place;
+    autoEl.setAttribute('aria-checked', String(draft.autoShare));
+  }
+
   let submitting = false;
+  const isAuto = () => autoEl.getAttribute('aria-checked') === 'true';
 
   function dateInvalid() {
     return startEl.value && endEl.value && endEl.value < startEl.value;
   }
 
   // 상태: 기본(이름 없음 → 비활성) / 입력 오류(날짜) / 입력 완료(활성)
+  // 자동 올리기 켜짐 → "다음"(공유 옵션으로), 꺼짐 → 공유 옵션 건너뛰고 바로 만들기
   function update() {
     const bad = dateInvalid();
     errorEl.classList.toggle('show', bad);
     endEl.setAttribute('aria-invalid', bad ? 'true' : 'false');
     submitBtn.disabled = submitting || !nameEl.value.trim() || bad;
+    if (!submitting) submitBtn.textContent = isAuto() ? '다음' : '공유 앨범 만들기';
   }
 
   [nameEl, startEl, endEl].forEach(el => el.addEventListener('input', update));
 
   autoEl.addEventListener('click', () => {
-    autoEl.setAttribute('aria-checked', autoEl.getAttribute('aria-checked') === 'true' ? 'false' : 'true');
+    autoEl.setAttribute('aria-checked', isAuto() ? 'false' : 'true');
+    update();
   });
 
   form.addEventListener('submit', (e) => {
@@ -304,8 +323,6 @@
     // 연타 방지: 한 번 누르면 바로 잠금
     submitting = true;
     submitBtn.disabled = true;
-    submitBtn.classList.add('loading');
-    submitBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span>만드는 중…';
 
     const album = {
       id: Date.now(),
@@ -313,17 +330,28 @@
       start: startEl.value,
       end: endEl.value,
       place: placeEl.value.trim(),
-      autoShare: autoEl.getAttribute('aria-checked') === 'true',
+      autoShare: isAuto(),
       members: 1,
       isNew: true,
     };
 
+    if (album.autoShare) {
+      Draft.set(album);
+      location.href = 'options.html';
+      return;
+    }
+
+    submitBtn.classList.add('loading');
+    submitBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span>만드는 중…';
     setTimeout(() => {
       Store.set([album, ...Store.get()]);
-      try { sessionStorage.setItem('phou.justCreated', String(album.id)); } catch (e) {}
+      try { sessionStorage.removeItem('phou.draft'); sessionStorage.setItem('phou.justCreated', String(album.id)); } catch (e) {}
       location.href = 'invite.html?id=' + album.id;
     }, 800);
   });
+
+  // 뒤로가기로 이 화면에 돌아왔을 때 버튼 잠금 풀기
+  window.addEventListener('pageshow', () => { submitting = false; update(); });
 
   update();
 </script>
