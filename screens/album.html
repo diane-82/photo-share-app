@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>phoU · 공유된 앨범</title>
+<style>
+  /* ---------- 디자인 토큰 (home.html과 같은 값) ---------- */
+  :root {
+    --bg: #FFFFFF;
+    --text: #111111;
+    --sub: #6B6B6B;
+    --surface: #F3F3F3;
+    --line: #DADADA;
+    --thumb: #E4E4E4;
+    --page: #E9E9E9;
+    --on-dark: #FFFFFF;
+    --on-dark-sub: #B5B5B5;
+    --dim: rgba(17, 17, 17, 0.45);
+
+    /* 사진 자리 회색 3단계 (사진끼리 구분되게) */
+    --ph-1: #E4E4E4;
+    --ph-2: #D6D6D6;
+    --ph-3: #C9C9C9;
+
+    --s-1: 4px;
+    --s-2: 8px;
+    --s-3: 12px;
+    --s-4: 16px;
+    --s-5: 20px;
+    --s-6: 24px;
+    --s-8: 32px;
+
+    --r-card: 20px;
+    --r-thumb: 6px;
+    --r-pill: 999px;
+    --border: 1.5px solid var(--line);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    background: var(--page);
+    color: var(--text);
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  button, a { font: inherit; color: inherit; }
+  button { background: none; border: none; cursor: pointer; }
+  a { text-decoration: none; }
+  :focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+
+  /* ---------- 폰 프레임 ---------- */
+  .phone {
+    position: relative;
+    width: 390px;
+    height: 844px;
+    background: var(--bg);
+    border-radius: 48px;
+    box-shadow: 0 0 0 10px var(--text);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .status-bar {
+    height: 48px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 var(--s-8) var(--s-2);
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .screen {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--s-2) var(--s-5) var(--s-6);
+    scrollbar-width: none;
+  }
+  .screen::-webkit-scrollbar { display: none; }
+
+  .top {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .icon-btn {
+    width: 44px; height: 44px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: var(--r-pill);
+  }
+  .top .back { margin-left: calc(var(--s-3) * -1); }
+  .top .download { margin-right: calc(var(--s-3) * -1); }
+  .icon-btn:disabled { color: var(--line); cursor: default; }
+
+  .album-head { margin: var(--s-3) 0 var(--s-5); }
+  .album-head h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+  .album-head .meta { color: var(--sub); margin-top: var(--s-1); }
+
+  /* AI 추천 카드 */
+  .ai-card {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    text-align: left;
+    background: var(--surface);
+    border: var(--border);
+    border-radius: var(--r-card);
+    padding: var(--s-4);
+    margin-bottom: var(--s-5);
+  }
+  .ai-card .spark {
+    width: 44px; height: 44px; flex-shrink: 0;
+    border-radius: var(--r-pill);
+    background: var(--text);
+    color: var(--on-dark);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ai-card .text { flex: 1; }
+  .ai-card .title { font-weight: 700; }
+  .ai-card .desc { color: var(--sub); margin-top: 2px; }
+
+  /* 필터 칩 */
+  .chips { display: flex; gap: var(--s-2); margin-bottom: var(--s-3); }
+  .chip {
+    height: 40px;
+    padding: 0 var(--s-4);
+    border-radius: var(--r-pill);
+    border: var(--border);
+    background: var(--bg);
+    color: var(--sub);
+    font-weight: 600;
+  }
+  .chip[aria-pressed="true"] { background: var(--text); border-color: var(--text); color: var(--on-dark); }
+
+  /* 사진 그리드 */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3px;
+  }
+  .photo {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: var(--r-thumb);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--sub);
+  }
+  .tone-1 { background: var(--ph-1); }
+  .tone-2 { background: var(--ph-2); }
+  .tone-3 { background: var(--ph-3); }
+  .initial {
+    position: absolute;
+    right: var(--s-1); bottom: var(--s-1);
+    min-width: 26px; height: 26px;
+    padding: 0 var(--s-1);
+    border-radius: var(--r-pill);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 26px;
+    text-align: center;
+  }
+  .skeleton { aspect-ratio: 1 / 1; background: var(--surface); border-radius: var(--r-thumb); animation: pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: 0.5; } }
+
+  /* 빈 상태 */
+  .empty {
+    background: var(--surface);
+    border: var(--border);
+    border-radius: var(--r-card);
+    padding: var(--s-8) var(--s-6);
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: var(--s-2);
+  }
+  .empty .title { font-size: 18px; font-weight: 700; }
+  .empty .desc { color: var(--sub); }
+
+  .btn-primary {
+    height: 52px;
+    padding: 0 var(--s-6);
+    border-radius: var(--r-pill);
+    background: var(--text);
+    color: var(--on-dark);
+    font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
+  }
+  .btn-secondary {
+    height: 52px;
+    padding: 0 var(--s-6);
+    border-radius: var(--r-pill);
+    border: var(--border);
+    font-weight: 700;
+  }
+  .empty .btn-primary { margin-top: var(--s-3); }
+
+  /* ---------- 하단 탭바 (home.html과 같음) ---------- */
+  .tabbar {
+    flex-shrink: 0;
+    margin: 0 var(--s-4);
+    height: 64px;
+    border: var(--border);
+    border-radius: var(--r-pill);
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--s-2);
+  }
+  .tab {
+    flex: 1;
+    height: 48px;
+    border-radius: var(--r-pill);
+    display: flex; align-items: center; justify-content: center; gap: var(--s-2);
+    color: var(--sub);
+    font-weight: 600;
+  }
+  .tab[aria-current="page"] { background: var(--surface); color: var(--text); }
+  .tab-add { flex: 0 0 auto; margin: 0 var(--s-2); width: 48px; height: 48px; }
+  .tab-add .circle {
+    width: 48px; height: 48px;
+    border-radius: var(--r-pill);
+    background: var(--text);
+    color: var(--on-dark);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .home-indicator {
+    width: 134px; height: 5px;
+    background: var(--text);
+    border-radius: var(--r-pill);
+    margin: var(--s-3) auto var(--s-2);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 30;
+  }
+
+  /* ---------- 저장 시트 ---------- */
+  .overlay {
+    position: absolute; inset: 0;
+    background: var(--dim);
+    z-index: 20;
+    display: flex; align-items: flex-end;
+  }
+  .sheet {
+    width: 100%;
+    background: var(--bg);
+    border-radius: 28px 28px 0 0;
+    padding: var(--s-3) var(--s-5) var(--s-8);
+  }
+  .sheet .handle { width: 40px; height: 5px; border-radius: var(--r-pill); background: var(--line); margin: 0 auto var(--s-5); }
+  .sheet h2 { font-size: 22px; font-weight: 800; }
+  .sheet .summary { color: var(--sub); margin: var(--s-2) 0 var(--s-5); }
+  .sheet .summary b { color: var(--text); }
+  .toggle-card {
+    display: flex; align-items: center; gap: var(--s-3);
+    background: var(--surface);
+    border: var(--border);
+    border-radius: var(--r-card);
+    padding: var(--s-4);
+  }
+  .toggle-card .text { flex: 1; }
+  .toggle-card .title { font-weight: 700; }
+  .toggle-card .desc { color: var(--sub); margin-top: var(--s-1); }
+  .switch {
+    position: relative; flex-shrink: 0;
+    width: 52px; height: 32px;
+    border-radius: var(--r-pill);
+    background: var(--line);
+    transition: background 0.2s;
+  }
+  .switch::after {
+    content: ''; position: absolute; top: 4px; left: 4px;
+    width: 24px; height: 24px; border-radius: var(--r-pill);
+    background: var(--bg);
+    transition: transform 0.2s;
+  }
+  .switch[aria-checked="true"] { background: var(--text); }
+  .switch[aria-checked="true"]::after { transform: translateX(20px); }
+  .sheet .actions { display: flex; gap: var(--s-2); margin-top: var(--s-6); }
+  .sheet .actions .btn-secondary { flex: 1; }
+  .sheet .actions .btn-primary { flex: 2; }
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid var(--sub);
+    border-top-color: var(--on-dark);
+    border-radius: var(--r-pill);
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---------- 사진 크게 보기 ---------- */
+  .viewer {
+    position: absolute; inset: 0;
+    background: var(--text);
+    color: var(--on-dark);
+    z-index: 25;
+    display: flex; flex-direction: column;
+  }
+  .viewer-top {
+    height: 96px;
+    padding: 48px var(--s-3) 0;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .viewer-top .count { font-weight: 600; }
+  .viewer-stage {
+    flex: 1;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    touch-action: pan-y;
+  }
+  .viewer-photo {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--sub);
+  }
+  .nav-btn {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 44px; height: 44px;
+    border-radius: var(--r-pill);
+    background: var(--dim);
+    color: var(--on-dark);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .nav-btn.prev { left: var(--s-3); }
+  .nav-btn.next { right: var(--s-3); }
+  .nav-btn:disabled { opacity: 0.3; cursor: default; }
+  .viewer-info { padding: var(--s-5) var(--s-5) 56px; }
+  .viewer-info .by { font-weight: 700; }
+  .viewer-info .when { color: var(--on-dark-sub); margin-top: var(--s-1); }
+  .viewer :focus-visible { outline-color: var(--on-dark); }
+
+  /* ---------- 토스트 ---------- */
+  .toast {
+    position: absolute;
+    left: 50%;
+    bottom: 104px;
+    transform: translate(-50%, 8px);
+    background: var(--text);
+    color: var(--on-dark);
+    padding: var(--s-3) var(--s-5);
+    border-radius: var(--r-pill);
+    width: max-content;
+    max-width: calc(100% - var(--s-8) * 2);
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 40;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (max-width: 430px) {
+    body { display: block; background: var(--bg); }
+    .phone { width: 100%; height: 100dvh; border-radius: 0; box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="status-bar" aria-hidden="true">9:41</div>
+
+  <main class="screen">
+    <div class="top">
+      <a class="icon-btn back" href="home.html" aria-label="홈으로">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      </a>
+      <button class="icon-btn download" id="downloadBtn" aria-label="내 폰에 저장" disabled>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+      </button>
+    </div>
+
+    <section class="album-head">
+      <h1 id="albumName"></h1>
+      <p class="meta" id="albumMeta"></p>
+    </section>
+
+    <div id="content"></div>
+  </main>
+
+  <nav class="tabbar" aria-label="하단 메뉴">
+    <a class="tab" href="home.html" aria-current="page">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
+      </svg>
+      앨범
+    </a>
+    <a class="tab tab-add" href="create.html">
+      <span class="circle">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      </span>
+      <span class="sr-only">새 앨범 만들기</span>
+    </a>
+    <button class="tab" onclick="showToast('준비 중인 기능이에요')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>
+      </svg>
+      내 정보
+    </button>
+  </nav>
+  <div class="home-indicator" aria-hidden="true"></div>
+
+  <!-- 저장 시트 -->
+  <div class="overlay" id="sheetOverlay" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+      <div class="handle" aria-hidden="true"></div>
+      <h2 id="sheetTitle">내 폰에 저장할게요</h2>
+      <p class="summary" id="sheetSummary" aria-live="polite"></p>
+      <div class="toggle-card">
+        <div class="text">
+          <p class="title" id="bestLabel">비슷한 사진은 베스트 1장만</p>
+          <p class="desc" id="bestDesc">겹치는 컷은 AI가 고른 1장만 저장해요</p>
+        </div>
+        <button type="button" class="switch" id="bestOnly" role="switch" aria-checked="true" aria-labelledby="bestLabel" aria-describedby="bestDesc"></button>
+      </div>
+      <div class="actions">
+        <button class="btn-secondary" id="sheetCancel">취소</button>
+        <button class="btn-primary" id="sheetSave"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 사진 크게 보기 -->
+  <div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-label="사진 크게 보기" hidden>
+    <div class="viewer-top">
+      <button class="icon-btn" id="viewerClose" aria-label="닫기">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+      <span class="count" id="viewerCount" aria-live="polite"></span>
+      <span style="width:44px" aria-hidden="true"></span>
+    </div>
+    <div class="viewer-stage" id="viewerStage">
+      <div class="viewer-photo" id="viewerPhoto"></div>
+      <button class="nav-btn prev" id="viewerPrev" aria-label="이전 사진">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <button class="nav-btn next" id="viewerNext" aria-label="다음 사진">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+    <div class="viewer-info">
+      <p class="by" id="viewerBy"></p>
+      <p class="when" id="viewerWhen"></p>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</div>
+
+<script>
+  // ---- 화면끼리 함께 쓰는 저장소 ----
+  const Store = {
+    get() { try { return JSON.parse(localStorage.getItem('phou.albums')) || []; } catch (e) { return []; } },
+  };
+
+  // ---- 더미 앨범 (home.html과 같은 값) ----
+  const DUMMY_ALBUMS = [
+    { id: 1, name: '다같이 홍대 투어', date: '2026.10.09', members: 5, photoCount: 36 },
+    { id: 2, name: '속초 여행',       date: '2026.09.20', members: 4, photoCount: 30 },
+    { id: 3, name: '롯데 팬들 직관',   date: '2026.08.30', members: 6, photoCount: 24 },
+    { id: 4, name: '고양이 전시회',    date: '2026.08.12', members: 3, photoCount: 18 },
+  ];
+
+  // 더미 사진: 앨범 id로 매번 같은 결과. 올린 사람은 이니셜(나, A~E)만, 실제 이름 없음
+  // group: 같은 장면을 여러 장 찍은 묶음. 저장할 때 묶음마다 1장만 남기는 기준
+  function makePhotos(album) {
+    const people = ['나', 'A', 'B', 'C', 'D', 'E'].slice(0, Math.max(2, album.members));
+    let s = album.id * 9301 + 49297;
+    const rand = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    const photos = [];
+    let group = 0;
+    while (photos.length < (album.photoCount || 0)) {
+      group++;
+      const burst = rand() < 0.45 ? 2 + Math.floor(rand() * 3) : 1;  // 연속 촬영 2~4장
+      const by = people[Math.floor(rand() * people.length)];
+      const hasMe = by !== '나' && rand() < 0.4;
+      const hour = 13 + Math.floor(photos.length / 8);
+      for (let i = 0; i < burst && photos.length < album.photoCount; i++) {
+        const n = photos.length;
+        photos.push({
+          id: n + 1, group, by, hasMe,
+          tone: 1 + (group % 3),
+          time: `${hour}:${String((n * 7) % 60).padStart(2, '0')}`,
+        });
+      }
+    }
+    return photos;
+  }
+
+  const id = Number(new URLSearchParams(location.search).get('id'));
+  const album = [...Store.get(), ...DUMMY_ALBUMS].find(a => a.id === id);
+
+  const content = document.getElementById('content');
+  const downloadBtn = document.getElementById('downloadBtn');
+  let photos = [];
+  let filter = 'all';
+  const visible = () => filter === 'me' ? photos.filter(p => p.hasMe) : photos;
+  const dateOf = a => a.date || a.start.replaceAll('-', '.');
+
+  const photoIcon = (size) => `
+    <svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/>
+    </svg>`;
+
+  // ---------- 상태별 화면 ----------
+  function renderNotFound() {
+    document.getElementById('albumName').textContent = '앨범을 찾을 수 없어요';
+    document.getElementById('albumMeta').textContent = '홈에서 앨범을 다시 골라 주세요';
+  }
+
+  function renderLoading() {
+    content.innerHTML = `<div class="grid" aria-busy="true" aria-label="사진 불러오는 중">${'<div class="skeleton"></div>'.repeat(12)}</div>`;
+  }
+
+  function renderEmpty() {
+    content.innerHTML = `
+      <div class="empty">
+        <p class="title">아직 올라온 사진이 없어요</p>
+        <p class="desc">친구들이 사진을 올리면 여기에 모여요</p>
+        <a class="btn-primary" href="invite.html?id=${album.id}">친구 다시 초대하기</a>
+      </div>`;
+  }
+
+  function renderMain() {
+    const mine = photos.filter(p => p.hasMe).length;
+    const list = visible();
+    content.innerHTML = `
+      <button class="ai-card" id="aiCard">
+        <span class="spark" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 5.6L19.5 9l-5.7 1.6L12 16l-1.8-5.4L4.5 9l5.7-1.4L12 2Zm6.5 11 .9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9.9-2.6Z"/></svg>
+        </span>
+        <span class="text">
+          <span class="title" style="display:block">AI가 고른 베스트 ${countBest(photos)}장</span>
+          <span class="desc" style="display:block">가장 잘 나온 컷만 모았어요</span>
+        </span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+      </button>
+      <div class="chips" role="group" aria-label="사진 필터">
+        <button class="chip" data-filter="all" aria-pressed="${filter === 'all'}">전체 ${photos.length}</button>
+        <button class="chip" data-filter="me" aria-pressed="${filter === 'me'}">내가 나온 사진 ${mine}</button>
+      </div>
+      ${list.length === 0
+        ? `<div class="empty"><p class="title">내가 나온 사진이 없어요</p><p class="desc">친구들이 더 올리면 다시 확인해 보세요</p></div>`
+        : `<div class="grid">${list.map((p, i) => `
+            <button class="photo tone-${p.tone}" data-index="${i}" aria-label="${p.by === '나' ? '내가' : p.by + '님이'} 올린 사진 ${i + 1}">
+              ${photoIcon(22)}
+              <span class="initial" aria-hidden="true">${p.by}</span>
+            </button>`).join('')}</div>`}
+    `;
+    document.getElementById('aiCard').addEventListener('click', () => showToast('AI 추천 화면은 다음 단계에서 연결돼요'));
+    content.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => { filter = c.dataset.filter; renderMain(); content.querySelector(`.chip[data-filter="${filter}"]`).focus(); }));
+    content.querySelectorAll('.photo').forEach(p => p.addEventListener('click', () => openViewer(Number(p.dataset.index), p)));
+    downloadBtn.disabled = list.length === 0;
+  }
+
+  const countBest = list => new Set(list.map(p => p.group)).size;
+
+  function load() {
+    if (!album) return renderNotFound();
+    document.getElementById('albumName').textContent = album.name;
+    photos = makePhotos(album);
+    document.getElementById('albumMeta').textContent = `${dateOf(album)} · ${album.members}명 · 사진 ${photos.length}장`;
+    renderLoading();
+    setTimeout(() => photos.length === 0 ? renderEmpty() : renderMain(), 700);
+  }
+
+  // ---------- 저장 시트 ----------
+  const overlay = document.getElementById('sheetOverlay');
+  const bestOnly = document.getElementById('bestOnly');
+  const saveBtn = document.getElementById('sheetSave');
+  let saving = false;
+  let lastFocus = null;
+
+  function saveCount() {
+    const list = visible();
+    return bestOnly.getAttribute('aria-checked') === 'true' ? countBest(list) : list.length;
+  }
+  function updateSheet() {
+    const list = visible();
+    const n = saveCount();
+    const scope = filter === 'me' ? '내가 나온 사진' : '사진';
+    document.getElementById('sheetSummary').innerHTML = n < list.length
+      ? `${scope} ${list.length}장 중<br>비슷한 사진을 빼고 <b>${n}장</b>을 저장해요`
+      : `${scope} <b>${n}장</b>을 모두 저장해요`;
+    saveBtn.textContent = `${n}장 저장`;
+  }
+  function openSheet() {
+    lastFocus = document.activeElement;
+    bestOnly.setAttribute('aria-checked', 'true');
+    updateSheet();
+    overlay.hidden = false;
+    bestOnly.focus();
+  }
+  function closeSheet() {
+    if (saving) return;
+    overlay.hidden = true;
+    if (lastFocus) lastFocus.focus();
+  }
+  downloadBtn.addEventListener('click', openSheet);
+  document.getElementById('sheetCancel').addEventListener('click', closeSheet);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeSheet(); });
+  bestOnly.addEventListener('click', () => {
+    bestOnly.setAttribute('aria-checked', bestOnly.getAttribute('aria-checked') === 'true' ? 'false' : 'true');
+    updateSheet();
+  });
+  saveBtn.addEventListener('click', () => {
+    if (saving) return;  // 연타 방지
+    saving = true;
+    const n = saveCount();
+    saveBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span>저장 중…';
+    setTimeout(() => {
+      saving = false;
+      closeSheet();
+      showToast(`${n}장을 내 폰에 저장했어요`);
+    }, 900);
+  });
+
+  // ---------- 사진 크게 보기 ----------
+  const viewer = document.getElementById('viewer');
+  let current = 0;
+
+  function openViewer(index, from) {
+    lastFocus = from;
+    current = index;
+    viewer.hidden = false;
+    renderViewer();
+    document.getElementById('viewerClose').focus();
+  }
+  function closeViewer() {
+    viewer.hidden = true;
+    const btn = content.querySelector(`.photo[data-index="${current}"]`);
+    (btn || lastFocus)?.focus();
+  }
+  function renderViewer() {
+    const list = visible();
+    const p = list[current];
+    document.getElementById('viewerCount').textContent = `${current + 1} / ${list.length}`;
+    const photo = document.getElementById('viewerPhoto');
+    photo.className = `viewer-photo tone-${p.tone}`;
+    photo.innerHTML = photoIcon(48);
+    document.getElementById('viewerBy').textContent = p.by === '나' ? '내가 올린 사진' : `${p.by}님이 올린 사진`;
+    document.getElementById('viewerWhen').textContent = `${dateOf(album)} ${p.time}${p.hasMe ? ' · 내가 나온 사진' : ''}`;
+    document.getElementById('viewerPrev').disabled = current === 0;
+    document.getElementById('viewerNext').disabled = current === list.length - 1;
+  }
+  function move(step) {
+    const next = current + step;
+    if (next < 0 || next >= visible().length) return;
+    current = next;
+    renderViewer();
+  }
+  document.getElementById('viewerClose').addEventListener('click', closeViewer);
+  document.getElementById('viewerPrev').addEventListener('click', () => move(-1));
+  document.getElementById('viewerNext').addEventListener('click', () => move(1));
+
+  // 손가락으로 좌우로 밀어서 넘기기
+  let startX = null;
+  const stage = document.getElementById('viewerStage');
+  stage.addEventListener('pointerdown', e => { startX = e.clientX; });
+  stage.addEventListener('pointerup', e => {
+    if (startX === null) return;
+    const dx = e.clientX - startX;
+    startX = null;
+    if (Math.abs(dx) > 50) move(dx < 0 ? 1 : -1);
+  });
+
+  // 키보드: Esc 닫기, ←/→ 넘기기
+  document.addEventListener('keydown', e => {
+    if (!viewer.hidden) {
+      if (e.key === 'Escape') closeViewer();
+      if (e.key === 'ArrowLeft') move(-1);
+      if (e.key === 'ArrowRight') move(1);
+    } else if (!overlay.hidden && e.key === 'Escape') {
+      closeSheet();
+    }
+  });
+
+  // 같은 버튼을 빠르게 여러 번 눌러도 토스트는 하나만
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+  }
+
+  load();
+</script>
+</body>
+</html>

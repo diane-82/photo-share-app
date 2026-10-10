@@ -378,10 +378,9 @@
     }, 700);
   }
 
-  // ---- 다음 단계에서 연결할 화면들: 지금은 안내만 ----
+  // ---- 다른 화면으로 이동 ----
   function openAlbum(id) {
-    const a = [NEW_ALBUM, ...Store.get(), ...ALBUMS].find(x => x.id === id);
-    showToast(`'${a.name}' 앨범 보기는 다음 단계에서 연결돼요`);
+    location.href = 'album.html?id=' + id;
   }
   function goCreate() {
     location.href = 'create.html';
